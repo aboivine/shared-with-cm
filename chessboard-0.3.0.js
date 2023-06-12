@@ -246,6 +246,9 @@
             DRAGGED_PIECE_LOCATION,
             DRAGGED_PIECE_SOURCE,
             DRAGGING_A_PIECE = false,
+            CLICK_MOVE = false,
+            CLICK_MOVE_PIECE,
+            PIECE_LEFT_SQUARE = false,
             SPARE_PIECE_ELS_IDS = {},
             SQUARE_ELS_IDS = {},
             SQUARE_ELS_OFFSETS;
@@ -1211,6 +1214,7 @@
 
             // add highlight to new square
             if (validSquare(location) === true) {
+                PIECE_LEFT_SQUARE = true;
                 $('#' + SQUARE_ELS_IDS[location]).addClass(CSS.highlight2);
             }
 
@@ -1274,15 +1278,37 @@
             }
 
             // do it!
-            if (action === 'snapback') {
+            if (objToFen(oldPosition) === objToFen(newPosition)) {
+                dropDraggedPieceOnSquare(location);
+                if(CLICK_MOVE !== true && PIECE_LEFT_SQUARE !== true) {
+                    // first click, start click-click move
+                    CLICK_MOVE = true;
+                    CLICK_MOVE_PIECE = DRAGGED_PIECE;
+                    DRAGGING_A_PIECE = true;
+                } else if (CLICK_MOVE_PIECE[0] === DRAGGED_PIECE[0] &&
+                    CLICK_MOVE_PIECE !== DRAGGED_PIECE){
+                    // switch to another piece of the same color
+                    CLICK_MOVE_PIECE = DRAGGED_PIECE;
+                    DRAGGING_A_PIECE = true;
+
+                } else {
+                    // second click, end click-click move
+                    CLICK_MOVE = false;
+                }
+            }
+            else if (action === 'snapback') {
                 snapbackDraggedPiece();
+                CLICK_MOVE = false;
             }
             else if (action === 'trash') {
                 trashDraggedPiece();
+                CLICK_MOVE = false;
             }
             else if (action === 'drop') {
                 dropDraggedPieceOnSquare(location);
+                CLICK_MOVE = false;
             }
+            PIECE_LEFT_SQUARE = false;
         }
 
 //------------------------------------------------------------------------------
